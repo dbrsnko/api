@@ -1,18 +1,15 @@
-import { IsNumber, IsString } from 'class-validator';
+import { IsEmail, IsString, IsStrongPassword } from 'class-validator';
 import { Exclude, Expose } from 'class-transformer';
 
 @Exclude()
-export class CreateUserDto {
+export class SignUpDto {
   @Expose()
-  @IsNumber()
-  id: number;
-
-  @Expose()
+  @IsEmail()
   @IsString()
   email: string;
 
   @Expose()
   @IsString()
+  @IsStrongPassword()
   password: string;
-
 }

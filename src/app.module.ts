@@ -1,37 +1,41 @@
-import {Module} from "@nestjs/common"
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule } from "@nestjs/config";
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { UserModule } from './user/user.module';
-import { User } from './user/entities/user.entity';
-import { RoleModule } from './role/role.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { UserModule } from './modules/user/user.module';
+import { PassportModule } from '@nestjs/passport';
+import { AuthModule } from './modules/auth';
 
 @Module({
-    controllers:[AppController],
-    providers: [AppService],
-    imports:[
-        ConfigModule.forRoot({
-            envFilePath:'.env'
+    controllers: [],
+    providers: [],
+    imports: [
+        PassportModule.registerAsync({
+            useFactory: () => ({
+                defaultStrategy: 'jwt',
+            }),
         }),
-        TypeOrmModule.forRoot({
-            type: 'postgres',
-            host: process.env.POSTGRES_HOST,
-            port: Number(process.env.POSTGRES_PORT),
-            username: process.env.POSTGRES_USER,
-            password: process.env.POSTGRES_PASSWORD,
-            database: process.env.POSTGRES_DB,
-            entities: [],
-            synchronize: true,
-            autoLoadEntities: true,
-            
-          }),
-        UserModule,
-        RoleModule,
-        
-          
-        
-    ]
-
+        ConfigModule.forRoot({
+            envFilePath: '.env',
+            isGlobal: true,
+        }),
+        TypeOrmModule.forRootAsync({
+            inject: [ConfigService],
+            useFactory: (configService: ConfigService) => {
+                return {
+                    type: 'postgres',
+                    host: configService.getOrThrow('DATABASE_HOST'),
+                    port: Number(process.env.DATABASE_PORT),
+                    username: process.env.DATABASE_USER,
+                    password: process.env.DATABASE_PASSWORD,
+                    database: process.env.DATABASE_DB,
+                    entities: [],
+                    synchronize: true,
+                    autoLoadEntities: true,
+                };
+            },
+        }),
+        UserModule.forRoot(),
+        AuthModule.forRoot(),
+    ],
 })
-export class AppModule{};
+export class AppModule { }
