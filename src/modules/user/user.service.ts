@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
@@ -39,7 +39,19 @@ export class UserService {
   }
 
   private async findBossUsers(user: JWTUser) {
-    return [];
+    const boss = await this.usersRepository.findOne({ where: { id: user.id } });
+    const users: User[] = [];
+    users.push(boss);
+    return  this.findUserRecursion(users,user.id);
+  }
+
+  private async findUserRecursion(users: User [], bossId: number) {
+    const user = await this.usersRepository.findOne({where:{bossId},lock: { mode: "pessimistic_write"} });
+    if (!user) 
+      return null;
+    users.push(user);
+    await this.findUserRecursion(users,bossId);
+    return users;
   }
 
   private async findDefaultUserUsers(user: JWTUser) {
@@ -59,5 +71,24 @@ export class UserService {
 
   async findSubordinateUsers(user: JWTUser) {
     return this.findUsersByRoleMap(user);
+  }
+
+  async changeBoss(user: JWTUser, userId, newBossId){
+    return this.changeBossByRoleMap(user, userId, newBossId)
+  }
+  
+  private async changeBossByRoleMap (user: JWTUser, userId, newBossId) {
+    const map: Record<UserRole, (user: JWTUser) => Promise<User[]>> = {
+      [UserRole.User]: ()=>{throw new HttpException('No Access', HttpStatus.FORBIDDEN)},
+      [UserRole.Boss]: this.setBoss.bind(this), 
+      [UserRole.Admin]: ()=>{throw new HttpException('No Access', HttpStatus.FORBIDDEN)},
+    };
+    
+    const users = await map[user.role](user);
+    return users;
+  }
+
+  private async setBoss(user: JWTUser, userId, newBossId){
+    
   }
 }

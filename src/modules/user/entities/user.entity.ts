@@ -5,8 +5,7 @@ import {
     Entity,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
-    ManyToOne,
-    OneToMany,
+    
 } from 'typeorm';
 
 @Entity('users')
@@ -23,11 +22,8 @@ export class User {
     @Column({ type: 'varchar', length: 20 })
     role: UserRole;
 
-    @ManyToOne((type) => User, (user) => user.children)
-    parent: User;
-
-    @OneToMany((type) => User, (user) => user.parent)
-    children: User[];
+    @Column({ type: 'int', length: 100 })
+    bossId: number;
 
     @CreateDateColumn({ type: 'timestamptz' })
     createdAt: Date;
