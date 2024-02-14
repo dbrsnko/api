@@ -16,20 +16,20 @@ const baseConfig: TypeOrmModuleOptions = {
   synchronize: false,
   migrationsRun: true,
   namingStrategy: new SnakeNamingStrategy(),
-  host: process.env.POSTGRES_HOST,
-  username: process.env.POSTGRES_USER,
-  password: process.env.POSTGRES_PASSWORD,
-  database: process.env.POSTGRES_DB,
+  host: process.env.DATABASE_HOST,
+  username: process.env.DATABASE_USER,
+  password: process.env.DATABASE_PASSWORD,
+  database: process.env.DATABASE_DB,
 };
 
 const developmentConfig: TypeOrmModuleOptions = {
-  port: parseInt(`${process.env.POSTGRES_PORT}`),
+  port: parseInt(`${process.env.DATABASE_PORT}`),
   ...baseConfig,
 };
 
 const prodConfig: TypeOrmModuleOptions = {
   extra: {
-    socketPath: process.env.POSTGRES_HOST,
+    socketPath: process.env.DATABASE_HOST,
   },
   ...baseConfig,
 };
@@ -37,7 +37,7 @@ const prodConfig: TypeOrmModuleOptions = {
 const isDev = process.env.NODE_ENV === 'development';
 
 const config = isDev ? developmentConfig : prodConfig;
-
+console.log(config);
 export default config;
 
 export const connectionSource = new DataSource(config as DataSourceOptions);

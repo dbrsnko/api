@@ -1,4 +1,4 @@
-import { Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { AuthGuard } from '@nestjs/passport';
 import { User } from '../auth/decorators/user.decorator';
@@ -15,7 +15,7 @@ export class UserController {
   }
   @Post('changeBoss')
   @UseGuards(AuthGuard(),)
-  changeBoss(@User() user: JWTUser, userId, newBossId){
+  changeBoss(@User() user: JWTUser, @Param('userId') userId: string, @Param('newBossId') newBossId: string){
     return this.userService.changeBoss(user, userId, newBossId);
   }
 

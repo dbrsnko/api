@@ -22,7 +22,7 @@ export class User {
     @Column({ type: 'varchar', length: 20 })
     role: UserRole;
 
-    @Column({ type: 'int', length: 100 })
+    @Column({ type: 'int' })
     bossId: number;
 
     @CreateDateColumn({ type: 'timestamptz' })

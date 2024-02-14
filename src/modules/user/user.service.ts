@@ -78,17 +78,23 @@ export class UserService {
   }
   
   private async changeBossByRoleMap (user: JWTUser, userId, newBossId) {
-    const map: Record<UserRole, (user: JWTUser) => Promise<User[]>> = {
+    const map: Record<UserRole, (user: JWTUser, userId: string, newBossId: string) => Promise<User>> = {
       [UserRole.User]: ()=>{throw new HttpException('No Access', HttpStatus.FORBIDDEN)},
-      [UserRole.Boss]: this.setBoss.bind(this), 
+      //[UserRole.Boss]: this.setBoss.bind(this), 
       [UserRole.Admin]: ()=>{throw new HttpException('No Access', HttpStatus.FORBIDDEN)},
+      [UserRole.Boss]:(user, userId, newBossId) => this.setBoss(user, userId, newBossId),
     };
     
-    const users = await map[user.role](user);
+    const users = await map[user.role](user, userId, newBossId);
     return users;
   }
 
   private async setBoss(user: JWTUser, userId, newBossId){
-    
+    let subordinate = await this.usersRepository.findOne({ where: { id: userId } });
+    const newBoss = await this.usersRepository.findOne({ where: { id: newBossId } });
+    if((user.id === subordinate.bossId || subordinate.bossId === null) && newBoss!=null)      
+      await this.usersRepository.update(userId, { bossId: newBossId });    
+    subordinate = await this.usersRepository.findOne({ where: { id: userId } });
+    return subordinate;
   }
 }
